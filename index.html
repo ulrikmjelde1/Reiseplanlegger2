@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reiseplanlegger</title>
+  <meta
+    name="description"
+    content="Interaktiv reiseplanlegger for tidligere og fremtidige reiser, med lokal lagring og statistikk."
+  />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-badge">✈</div>
+        <div>
+          <p class="eyebrow">GitHub Pages-klar</p>
+          <h1>Reiseplanlegger</h1>
+        </div>
+      </div>
+
+      <nav class="nav-grid" aria-label="Hovednavigasjon">
+        <button class="nav-card active" data-section-target="future">
+          <span class="nav-card-icon">🧳</span>
+          <span class="nav-card-text">
+            <strong>Fremtidige reiser</strong>
+            <small>Kommende turer basert på slutt-dato</small>
+          </span>
+        </button>
+        <button class="nav-card" data-section-target="past">
+          <span class="nav-card-icon">🗺️</span>
+          <span class="nav-card-text">
+            <strong>Tidligere reiser</strong>
+            <small>Arkiv over reiser som er avsluttet</small>
+          </span>
+        </button>
+        <button class="nav-card" data-section-target="form">
+          <span class="nav-card-icon">➕</span>
+          <span class="nav-card-text">
+            <strong>Registrer ny reise</strong>
+            <small>Opprett eller rediger en reise</small>
+          </span>
+        </button>
+        <button class="nav-card" data-section-target="stats">
+          <span class="nav-card-icon">📊</span>
+          <span class="nav-card-text">
+            <strong>Statistikk</strong>
+            <small>Utvidbar innsikt og morsomme tall</small>
+          </span>
+        </button>
+        <button class="nav-card" data-section-target="backup">
+          <span class="nav-card-icon">💾</span>
+          <span class="nav-card-text">
+            <strong>Import / eksport</strong>
+            <small>Backup, gjenoppretting og migrering</small>
+          </span>
+        </button>
+      </nav>
+
+      <section class="sidebar-panel">
+        <h2>Om denne versjonen</h2>
+        <p>
+          Denne MVP-en lagrer data lokalt i nettleseren. Det gjør løsningen enkel å hoste på GitHub Pages,
+          samtidig som dataformatet er klart for senere flytting til backend eller database.
+        </p>
+        <dl class="mini-stats">
+          <div>
+            <dt>I dag</dt>
+            <dd id="todayDisplay">–</dd>
+          </div>
+          <div>
+            <dt>Lagring</dt>
+            <dd>localStorage</dd>
+          </div>
+          <div>
+            <dt>Format</dt>
+            <dd>JSON-objekter</dd>
+          </div>
+        </dl>
+      </section>
+    </aside>
+
+    <main class="content">
+      <header class="hero card">
+        <div>
+          <p class="eyebrow">Din personlige reisedatabase</p>
+          <h2>Planlegg, arkiver og analyser reisene dine</h2>
+          <p class="hero-copy">
+            Systemet deler automatisk reiser i fremtidige og tidligere ved å sammenligne <strong>slutt-dato</strong>
+            med dagens dato i nettleseren. Du kan importere og eksportere hele databasen som JSON når som helst.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <button class="button button-primary" data-jump-to="form">Ny reise</button>
+          <button class="button button-secondary" data-jump-to="stats">Se statistikk</button>
+        </div>
+      </header>
+
+      <section id="future" class="app-section active" aria-labelledby="futureHeading">
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">Seksjon</p>
+            <h2 id="futureHeading">Fremtidige reiser</h2>
+          </div>
+          <div class="section-tools">
+            <input id="futureSearch" type="search" placeholder="Søk etter destinasjon, kategori eller deltaker" />
+          </div>
+        </div>
+        <div id="futureTrips" class="trip-grid"></div>
+      </section>
+
+      <section id="past" class="app-section" aria-labelledby="pastHeading">
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">Seksjon</p>
+            <h2 id="pastHeading">Tidligere reiser</h2>
+          </div>
+          <div class="section-tools">
+            <input id="pastSearch" type="search" placeholder="Søk etter destinasjon, kategori eller deltaker" />
+          </div>
+        </div>
+        <div id="pastTrips" class="trip-grid"></div>
+      </section>
+
+      <section id="form" class="app-section" aria-labelledby="formHeading">
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">Seksjon</p>
+            <h2 id="formHeading">Registrer ny reise</h2>
+            <p class="muted">Fyll ut det du trenger nå. Resten kan legges til eller redigeres senere.</p>
+          </div>
+        </div>
+
+        <form id="tripForm" class="card form-card">
+          <input type="hidden" id="tripId" />
+
+          <div class="form-grid">
+            <label>
+              <span>Destinasjon *</span>
+              <input id="destination" name="destination" type="text" required placeholder="F.eks. Tokyo" />
+            </label>
+
+            <label>
+              <span>Kategori</span>
+              <input id="category" name="category" type="text" placeholder="jobb, fritid, guttetur, blåtur ..." />
+            </label>
+
+            <label>
+              <span>Land / region</span>
+              <input id="region" name="region" type="text" placeholder="F.eks. Japan" />
+            </label>
+
+            <label>
+              <span>Valuta</span>
+              <input id="currency" name="currency" type="text" maxlength="8" value="NOK" placeholder="NOK" />
+            </label>
+
+            <label>
+              <span>Start-dato *</span>
+              <input id="startDate" name="startDate" type="date" required />
+            </label>
+
+            <label>
+              <span>Slutt-dato *</span>
+              <input id="endDate" name="endDate" type="date" required />
+            </label>
+
+            <label>
+              <span>Total flypris</span>
+              <input id="flightTotalPrice" name="flightTotalPrice" type="number" min="0" step="0.01" placeholder="0" />
+            </label>
+
+            <label>
+              <span>Total hotellpris</span>
+              <input id="hotelTotalPrice" name="hotelTotalPrice" type="number" min="0" step="0.01" placeholder="0" />
+            </label>
+          </div>
+
+          <section class="nested-section">
+            <div class="nested-section-header">
+              <div>
+                <h3>Flyvninger</h3>
+                <p>Inntil 2 flysegmenter i denne versjonen.</p>
+              </div>
+              <button type="button" class="button button-secondary" id="addFlightBtn">Legg til flyvning</button>
+            </div>
+            <div id="flightsContainer" class="stack"></div>
+          </section>
+
+          <section class="nested-section">
+            <div class="nested-section-header">
+              <div>
+                <h3>Hotell</h3>
+                <p>Inntil 5 hotellopphold.</p>
+              </div>
+              <button type="button" class="button button-secondary" id="addHotelBtn">Legg til hotell</button>
+            </div>
+            <div id="hotelsContainer" class="stack"></div>
+          </section>
+
+          <section class="nested-section">
+            <div class="nested-section-header">
+              <div>
+                <h3>Deltakere</h3>
+                <p>Inntil 15 personer.</p>
+              </div>
+              <button type="button" class="button button-secondary" id="addParticipantBtn">Legg til deltaker</button>
+            </div>
+            <div id="participantsContainer" class="stack"></div>
+          </section>
+
+          <section class="nested-section">
+            <div class="nested-section-header">
+              <div>
+                <h3>Ekstra felter</h3>
+                <p>Disse er valgfrie, men nyttige for fremtidige statistikker og API-integrasjoner.</p>
+              </div>
+            </div>
+            <div class="form-grid">
+              <label>
+                <span>Tagger</span>
+                <input id="tags" name="tags" type="text" placeholder="kommaseparert, f.eks. ski, konferanse, familie" />
+              </label>
+              <label>
+                <span>Notater</span>
+                <textarea id="notes" name="notes" rows="4" placeholder="Fritekst, bookinginfo, ideer, TODO ..."></textarea>
+              </label>
+            </div>
+          </section>
+
+          <div class="form-actions">
+            <button type="submit" class="button button-primary">Lagre reise</button>
+            <button type="button" class="button button-secondary" id="resetFormBtn">Nullstill skjema</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="stats" class="app-section" aria-labelledby="statsHeading">
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">Seksjon</p>
+            <h2 id="statsHeading">Statistikk</h2>
+            <p class="muted">Tallene under bygges fra samme JSON-struktur som reisene dine og er enkle å utvide.</p>
+          </div>
+        </div>
+
+        <div id="statsSummary" class="stats-grid"></div>
+        <div class="stats-layout">
+          <div class="card">
+            <h3>Mest brukte kategorier</h3>
+            <div id="categoryBreakdown" class="list-block"></div>
+          </div>
+          <div class="card">
+            <h3>Mest besøkte destinasjoner</h3>
+            <div id="destinationBreakdown" class="list-block"></div>
+          </div>
+          <div class="card">
+            <h3>Mest reiste med</h3>
+            <div id="participantBreakdown" class="list-block"></div>
+          </div>
+          <div class="card">
+            <h3>Utvid statistikken selv</h3>
+            <p>
+              Se <code>buildStatDefinitions()</code> i <code>app.js</code>. Der kan du legge til nye beregninger,
+              som total CO₂, flydistanse, gjennomsnittspris per natt eller API-baserte flydata senere.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="backup" class="app-section" aria-labelledby="backupHeading">
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">Seksjon</p>
+            <h2 id="backupHeading">Import / eksport</h2>
+            <p class="muted">Dette er min anbefalte ekstrafunksjon for en GitHub Pages-basert MVP.</p>
+          </div>
+        </div>
+
+        <div class="backup-layout">
+          <article class="card">
+            <h3>Eksporter alle reiser</h3>
+            <p>Last ned en JSON-fil med alle reisedata. Perfekt for backup og senere migrering til database.</p>
+            <button class="button button-primary" id="exportBtn">Eksporter JSON</button>
+          </article>
+
+          <article class="card">
+            <h3>Importer fra JSON</h3>
+            <p>Gjenopprett eller slå sammen data fra en tidligere eksport.</p>
+            <input id="importFileInput" type="file" accept="application/json,.json" />
+            <div class="inline-actions">
+              <button class="button button-secondary" id="importReplaceBtn">Importer og erstatt</button>
+              <button class="button button-secondary" id="importMergeBtn">Importer og slå sammen</button>
+            </div>
+          </article>
+
+          <article class="card danger-card">
+            <h3>Nullstill lokal database</h3>
+            <p>Sletter alle reiser fra nettleseren på denne enheten.</p>
+            <button class="button button-danger" id="clearAllBtn">Slett alt lokalt</button>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <template id="flightTemplate">
+    <article class="nested-card" data-item-type="flight">
+      <div class="nested-card-header">
+        <h4>Flyvning <span class="item-number"></span></h4>
+        <button type="button" class="icon-button remove-item-btn" aria-label="Fjern flyvning">✕</button>
+      </div>
+      <div class="form-grid nested-grid">
+        <label>
+          <span>Flight number</span>
+          <input type="text" data-field="flightNumber" placeholder="F.eks. SK455" />
+        </label>
+        <label>
+          <span>Fra flyplass</span>
+          <input type="text" data-field="depAirport" placeholder="OSL" />
+        </label>
+        <label>
+          <span>Til flyplass</span>
+          <input type="text" data-field="arrAirport" placeholder="LHR" />
+        </label>
+        <label>
+          <span>Airline</span>
+          <input type="text" data-field="airline" placeholder="Valgfritt" />
+        </label>
+        <label>
+          <span>Flytid (minutter)</span>
+          <input type="number" min="0" step="1" data-field="durationMinutes" placeholder="Valgfritt" />
+        </label>
+      </div>
+    </article>
+  </template>
+
+  <template id="hotelTemplate">
+    <article class="nested-card" data-item-type="hotel">
+      <div class="nested-card-header">
+        <h4>Hotell <span class="item-number"></span></h4>
+        <button type="button" class="icon-button remove-item-btn" aria-label="Fjern hotell">✕</button>
+      </div>
+      <div class="form-grid nested-grid">
+        <label>
+          <span>Navn</span>
+          <input type="text" data-field="name" placeholder="F.eks. Grand Hotel" />
+        </label>
+        <label>
+          <span>Totalpris</span>
+          <input type="number" min="0" step="0.01" data-field="totalPrice" placeholder="Valgfritt" />
+        </label>
+      </div>
+    </article>
+  </template>
+
+  <template id="participantTemplate">
+    <article class="nested-card compact-card" data-item-type="participant">
+      <div class="nested-card-header">
+        <h4>Deltaker <span class="item-number"></span></h4>
+        <button type="button" class="icon-button remove-item-btn" aria-label="Fjern deltaker">✕</button>
+      </div>
+      <div class="form-grid nested-grid">
+        <label>
+          <span>Navn</span>
+          <input type="text" data-field="name" placeholder="F.eks. Ola Nordmann" />
+        </label>
+      </div>
+    </article>
+  </template>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
